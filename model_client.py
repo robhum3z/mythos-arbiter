@@ -2,7 +2,9 @@
 import requests
 from config import settings
 
+
 class CircuitBreaker:
+    """Stops the Arbiter from hammering a broken endpoint."""
     def __init__(self, max_failures=3, reset_after=15.0):
         self.max_failures = max_failures
         self.reset_after = reset_after
@@ -23,11 +25,14 @@ class CircuitBreaker:
         if self.failures >= self.max_failures:
             self.opened_at = time.time()
 
+
 breaker = CircuitBreaker()
+
 
 def call_model(prompt: str, context: str, session_id: str) -> dict:
     """
-    POST to MythosModel with retries, backoff, and a simple circuit breaker.
+    Safe call to the Mythos Model endpoint with retries and fall-back text.
+    Always returns a dict with a 'response' key.
     """
     if not breaker.allow():
         return {"response": "[Model temporarily unavailable (circuit open)]"}
@@ -51,11 +56,12 @@ def call_model(prompt: str, context: str, session_id: str) -> dict:
             if isinstance(data, dict):
                 return data
             return {"response": str(data)}
+
         except Exception as e:
             last_err = e
             breaker.record_failure()
-            if attempt < settings.MAX_RETRIES:
-                time.sleep(backoff)
-                backoff *= 1.6
-            else:
-                return {"response": f"[Model error: {e}]"}
+            time.sleep(backoff)
+            backoff *= 1.6
+
+    print(f"⚠️ Mythos Model unreachable after retries: {last_err}")
+    return {"response": "[Model temporarily unavailable — imagination mode engaged]"}
