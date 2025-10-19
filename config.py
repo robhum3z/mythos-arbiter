@@ -1,35 +1,28 @@
 ﻿from pydantic_settings import BaseSettings
-from pydantic import Field
-
 
 class Settings(BaseSettings):
-    # Core configuration
-    MODEL_URL: str = Field(
-        "https://mythos-model.onrender.com/ask",
-        description="URL of the Mythos Model endpoint"
-    )
-    DB_URL: str = Field(
-        "sqlite:///arbiter.db",
-        description="SQLite DB file (auto-created if missing)"
-    )
-    ARBITER_API_KEY: str | None = Field(
-        default=None,
-        description="Optional API key for access control"
-    )
+    # ------------------------------------------------------------------
+    # Core Configuration
+    # ------------------------------------------------------------------
+    MODEL_URL: str = "https://mythos-model.onrender.com/ask"
+    DB_URL: str = "sqlite:///arbiter.db"
 
-    # Runtime behaviour
-    MAX_RETRIES: int = Field(default=2)
-    REQUEST_TIMEOUT_SECS: float = Field(default=20.0)
-    RETRY_BACKOFF_SECS: float = Field(default=2.0)
+    # ------------------------------------------------------------------
+    # Arbiter Controls
+    # ------------------------------------------------------------------
+    ARBITER_API_KEY: str = ""
+    LOG_LEVEL: str = "INFO"
+
+    # ------------------------------------------------------------------
+    # Scoring and Adaptation Constants
+    # ------------------------------------------------------------------
+    EMA_ALPHA: float = 0.15  # smoothing factor for exponential moving average
+    RETRY_BACKOFF_SECS: float = 1.2
+    MAX_RETRIES: int = 2
+    REQUEST_TIMEOUT_SECS: float = 12.0
 
     class Config:
         env_file = ".env"
-        env_file_encoding = "utf-8"
+        extra = "ignore"
 
-
-try:
-    settings = Settings()
-except Exception as e:
-    # If something’s badly wrong, print it but keep running
-    print(f"⚠️ Config load warning: {e}")
-    settings = Settings(_env_file=None)
+settings = Settings()
