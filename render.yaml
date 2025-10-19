@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: mythos-arbiter
+    env: python
+    plan: free
+    region: oregon
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn arbiter_service:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: MODEL_URL
+        value: https://mythos-model.onrender.com/ask
+      - key: LOG_LEVEL
+        value: INFO
+      - key: DB_PATH
+        value: /var/data/arbiter.db
+    disk:
+      name: arbiter-data
+      mountPath: /var/data
+      sizeGB: 1
