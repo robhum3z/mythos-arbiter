@@ -12,8 +12,4 @@ services:
       - key: LOG_LEVEL
         value: INFO
       - key: DB_PATH
-        value: /var/data/arbiter.db
-    disk:
-      name: arbiter-data
-      mountPath: /var/data
-      sizeGB: 1
+        value: ./arbiter.db
