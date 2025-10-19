@@ -1,29 +1,35 @@
-﻿from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import Optional
+﻿from pydantic_settings import BaseSettings
+from pydantic import Field
+
 
 class Settings(BaseSettings):
-    """
-    Configuration for the Mythos Arbiter service.
-    Supports both local development and cloud deployment.
-    """
+    # ------------------------------------------------------------------
+    # Core Config
+    # ------------------------------------------------------------------
+    MODEL_URL: str = Field(
+        "https://mythos-model.onrender.com/ask",
+        description="URL of the Mythos Model service",
+    )
+    DB_URL: str = Field(
+        "sqlite:///arbiter.db",
+        description="SQLite database path for Arbiter state",
+    )
+    ARBITER_API_KEY: str | None = Field(
+        default=None,
+        description="Optional API key for secure Arbiter access",
+    )
 
-    # Core URLs
-    MODEL_URL: str = "https://mythos-model.onrender.com/ask"  # Cloud model endpoint
-    LOCAL_MODEL_URL: Optional[str] = "http://127.0.0.1:8001/ask"  # Local dev fallback
+    # ------------------------------------------------------------------
+    # Networking & Timeouts
+    # ------------------------------------------------------------------
+    MAX_RETRIES: int = Field(default=2, description="Max retries for model calls")
+    REQUEST_TIMEOUT_SECS: float = Field(default=20.0, description="Model call timeout")
+    RETRY_BACKOFF_SECS: float = Field(default=2.0, description="Initial retry backoff")
 
-    # Network + timeout tuning
-    REQUEST_TIMEOUT_SECS: int = 20
-    MAX_RETRIES: int = 3
-    RETRY_BACKOFF_SECS: float = 1.0
+    class Config:
+        env_file = ".env"
+        env_file_encoding = "utf-8"
 
-    # Database + logging (optional)
-    DB_PATH: str = "arbiter.db"
-    LOG_LEVEL: str = "INFO"
 
-    # FastAPI metadata
-    SERVICE_NAME: str = "Mythos Arbiter"
-    SERVICE_VERSION: str = "0.2.1"
-
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
-
+# Instantiate global settings object
 settings = Settings()
